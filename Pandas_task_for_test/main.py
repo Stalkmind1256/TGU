@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
+from datetime import datetime as dt
 
 
 
@@ -14,8 +15,8 @@ pd.set_option('display.max_colwidth', None)
 df_copy = df.copy()
 
 print(df_copy.head())
-num_observations = df_copy.shape[0]
-num_columns = df_copy.shape[1]
+total_rows = df_copy.shape[0]
+total_columns = df_copy.shape[1]
 wage_eur = df_copy.dtypes['wage_eur']
 columns_for_drop =  ['club_position',
  'club_jersey_number',
@@ -110,8 +111,8 @@ columns_for_drop =  ['club_position',
  'club_flag_url',
  'nation_logo_url',
  'nation_flag_url']
-print(f"Количество наблюдений: {num_observations}")
-print(f"Количество признаков: {num_columns}")
+print(f"Количество наблюдений: {total_rows}")
+print(f"Количество признаков: {total_columns}")
 print(f"Тип данных age_eur: {wage_eur}")
 
 df_copy.drop(columns=columns_for_drop, inplace=True)
@@ -129,5 +130,51 @@ print(f"Количество дубликатов по признакам long_n
 df_copy.drop_duplicates(subset=['long_name','club_name'], keep=False, inplace=True)
 
 print(f"Количетсво строк после удаления дубликатов: {df_copy.shape[0]}" )
+
+print(df_copy.isnull().sum())
+
+missing_values_value_eur = df_copy['value_eur'].isnull().sum()
+procent_missing = (missing_values_value_eur / total_rows) * 100
+
+print(f"Процент пропущенных значений value_eur: {procent_missing:.2f}")
+
+procent_full_league_name = (total_rows - df_copy['league_name'].isnull().sum())
+
+print(f"Количество заполненных значений league_name: {procent_full_league_name}")
+
+df_copy.dropna(subset=['club_name'],inplace=True)
+print(df_copy.shape)
+# print(df_copy.isnull().sum())
+count_missing_value_eur = df_copy['value_eur'].isnull().sum()
+print(f"Количество пропущенных значений по признаку value_eur: {count_missing_value_eur}")
+
+mean = df_copy['value_eur'].mean()
+print(f"Среднее значение value_eur: {mean:.2f}")
+df_copy['value_eur'] = df_copy['value_eur'].fillna(mean)
+df_copy.reset_index(drop=True, inplace=True)
+print(df_copy.info())
+
+dob = df_copy['dob'].dtype
+print(f"Тип данных dob: {dob}")
+df_copy.dob = pd.to_datetime(df_copy.dob, format='%Y-%m-%d',dayfirst=True)
+# df_copy.dob = df_copy.dob.dt.strftime('%d-%m-%Y')
+print(df_copy['dob'].head())
+print(f"Тип данных dob: {dob}")
+
+overall = df_copy['overall'].dtype
+print(f"Тип данных overall: {overall}")
+df_copy.overall = pd.to_numeric(df_copy.overall ,downcast='float')
+
+
+value_eur = df_copy['value_eur'].dtype
+print(f"Тип данных value_eur: {value_eur}")
+df_copy.value_eur = df_copy.value_eur.astype('int')
+
+print(df_copy.age.head())
+current_year = dt.now().year
+df_copy['age_new'] = current_year - df_copy.dob.apply(lambda x: x.year)
+print(df_copy.age_new.head())
+
+print(df_copy.columns)
 
 

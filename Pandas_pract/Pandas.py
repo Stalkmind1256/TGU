@@ -12,7 +12,7 @@ import json
 # df = pd.DataFrame(data)
 
 
-df = pandas.read_csv("shop_users.csv")# Показывать все строки
+df = pd.read_csv("shop_users.csv")# Показывать все строки
 pd.set_option('display.max_rows', None)  # Показывать все строки
 pd.set_option('display.max_columns', None)  # Показывать все столбцы
 pd.set_option('display.width', None)  # Полная ширина вывода
