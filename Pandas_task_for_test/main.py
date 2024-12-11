@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
+import openpyexcel
 from datetime import datetime as dt
 
 
@@ -15,6 +16,12 @@ pd.set_option('display.max_colwidth', None)
 df_copy = df.copy()
 
 print(df_copy.head())
+
+
+# unique_count_league_name = len(df_copy.league_name.unique())
+# print(f"Количестов уникальных значений по признаку 'league_name' : {unique_count_league_name}")
+
+
 total_rows = df_copy.shape[0]
 total_columns = df_copy.shape[1]
 wage_eur = df_copy.dtypes['wage_eur']
@@ -173,8 +180,65 @@ df_copy.value_eur = df_copy.value_eur.astype('int')
 print(df_copy.age.head())
 current_year = dt.now().year
 df_copy['age_new'] = current_year - df_copy.dob.apply(lambda x: x.year)
-print(df_copy.age_new.head())
+# print(df_copy.age_new.head())
 
-print(df_copy.columns)
+age_different = abs(df_copy.loc[0, 'age_new'] - df_copy.loc[10173, 'age_new'])
+print(f"Разница в возрасте: {age_different} лет" )
+
+weight_kg = df_copy['weight_kg']
+height_cm = df_copy['height_cm'] / 100
+
+df_copy['imt'] = weight_kg / (height_cm**2)
+
+imt_avg = df_copy.imt.mean()
+print(f"Среднее значение ИМТ: {imt_avg:.2f}")
+
+def encode_player_positions(position):
+    if len(position.split(',')) == 1:
+      return 0
+    else:
+      return 1
+
+df_copy['player_positions_code'] = df_copy['player_positions'].apply(encode_player_positions)
+
+most_frequent_value = df_copy['player_positions_code'].mode()
+
+print(f"Наиболее часто встречамое значение 'player_positions_code': {most_frequent_value[0]}")
+
+player_positions_dict = { 0: 'one',
+                          1: 'several'}
+
+df_copy['player_positions_category'] = df_copy['player_positions_code'].map(player_positions_dict)
+
+count_several = (df_copy['player_positions_category'] == 'several').sum()
+print(f"Количество значений 'several':{count_several}")
+
+unique_count_league_name = len(df_copy.league_name.unique())
+
+print(f"Количестов уникальных значений по признаку 'league_name' : {unique_count_league_name}")
+
+df_copy['league_name'] = df_copy['league_name'].str.lower()
+
+count_russia = df_copy['league_name'].str.lower().str.count('russia').sum()
+
+print(f"Количество подстрок russia: {count_russia}")
+
+df_copy['league_name'] = df_copy['league_name'].fillna('не указано')
+df_copy['league_name'] = df_copy['league_name'].replace('не указано', 'undefined')
+
+df_copy['player_positions'] = df_copy['player_positions'].str.split(',')
+
+count_undefined = df_copy['league_name'].str.count('undefined').sum()
+print("Количество вхождений подстроки 'undefined':", count_undefined)
+
+df2 = df_copy.explode('player_positions')
 
 
+num_rows = df2.shape[0]
+print(f"Количество наблюдений {num_rows}")
+
+df2.to_excel('players_22_cleaner.xlsx', index=False)
+
+print("DataFrame df1 успешно сохранен в файл players_cleaning.xlsx.")
+
+#56, 61 , 22,77
